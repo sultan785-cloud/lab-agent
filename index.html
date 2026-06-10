@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1B4F72">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>إيجنت ذكاء المختبر — سلطان المالكي</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --brand:#1B4F72;--mid:#2E86C1;--light:#D6EAF8;--pale:#EBF5FB;
+  --green:#1E8449;--amber:#D68910;--red:#CB4335;--gray:#566573;--dark:#1C2833;
+  --bg:#F4F8FB;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;direction:rtl}
+
+/* ═══════════════════════════════
+   PIN SCREEN
+═══════════════════════════════ */
+#pin-screen{
+  position:fixed;inset:0;background:var(--brand);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;transition:opacity 0.4s ease;
+}
+#pin-screen.hide{opacity:0;pointer-events:none}
+
+.pin-logo{
+  width:80px;height:80px;border-radius:22px;
+  background:rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:38px;color:#fff;margin-bottom:20px;
+}
+.pin-title{color:#fff;font-size:22px;font-weight:700;margin-bottom:4px;text-align:center}
+.pin-sub{color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:32px;text-align:center}
+.pin-owner{color:rgba(255,255,255,0.45);font-size:11px;margin-bottom:32px}
+
+.pin-dots{display:flex;gap:14px;margin-bottom:28px}
+.pin-dot{
+  width:16px;height:16px;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.5);
+  background:transparent;transition:background 0.15s;
+}
+.pin-dot.filled{background:#fff;border-color:#fff}
+
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:240px}
+.pin-btn{
+  height:64px;border-radius:14px;border:none;
+  background:rgba(255,255,255,0.12);color:#fff;
+  font-size:22px;font-weight:500;cursor:pointer;
+  font-family:inherit;transition:background 0.1s, transform 0.1s;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+}
+.pin-btn:active{background:rgba(255,255,255,0.28);transform:scale(0.95)}
+.pin-btn .btn-letters{font-size:9px;opacity:0.5;letter-spacing:1px;margin-top:2px}
+.pin-btn.zero{grid-column:2}
+.pin-btn.del{background:rgba(255,255,255,0.06);font-size:18px}
+.pin-btn.del:active{background:rgba(255,255,255,0.18)}
+
+.pin-error{
+  color:#FF6B6B;font-size:13px;margin-top:16px;
+  height:18px;text-align:center;
+}
+
+/* ═══════════════════════════════
+   MAIN APP
+═══════════════════════════════ */
+#app{
+  height:100vh;display:flex;flex-direction:column;
+  max-width:480px;margin:0 auto;
+  background:#fff;border-left:0.5px solid var(--light);border-right:0.5px solid var(--light);
+  overflow:hidden;
+}
+
+/* Top bar */
+#topbar{
+  background:var(--brand);padding:12px 16px 10px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-avatar{
+  width:38px;height:38px;border-radius:11px;
+  background:rgba(255,255,255,0.18);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;color:#fff;flex-shrink:0;
+}
+.tb-info{}
+.tb-name{color:#fff;font-size:14px;font-weight:700;line-height:1.2}
+.tb-role{color:rgba(255,255,255,0.55);font-size:10.5px}
+.tb-right{display:flex;align-items:center;gap:8px}
+.status-pill{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 10px;
+}
+.s-dot{width:7px;height:7px;border-radius:50%;background:#2ECC71;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.s-txt{color:rgba(255,255,255,0.8);font-size:11px}
+.lock-btn{
+  background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.7);
+  width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+}
+.lock-btn:active{background:rgba(255,255,255,0.2)}
+
+/* KPI strip */
+#kpi-strip{
+  display:flex;gap:8px;padding:10px 14px;
+  background:var(--pale);flex-shrink:0;
+  overflow-x:auto;scrollbar-width:none;
+}
+#kpi-strip::-webkit-scrollbar{display:none}
+.kcard{
+  flex-shrink:0;background:#fff;border:0.5px solid var(--light);
+  border-radius:10px;padding:7px 11px;text-align:center;min-width:74px;
+}
+.kv{font-size:17px;font-weight:700;line-height:1.1}
+.kl{font-size:9.5px;color:var(--gray);margin-top:2px}
+
+/* Mode tabs */
+#tabs{
+  display:flex;background:#fff;
+  border-bottom:1px solid var(--light);flex-shrink:0;
+  overflow-x:auto;scrollbar-width:none;
+}
+#tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1;min-width:68px;padding:9px 4px;text-align:center;
+  font-size:11.5px;color:var(--gray);cursor:pointer;
+  border-bottom:2px solid transparent;white-space:nowrap;
+  font-family:inherit;background:none;
+  border-top:none;border-left:none;border-right:none;
+}
+.tab.active{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+.tab i{display:block;font-size:16px;margin-bottom:2px}
+
+/* Messages */
+#msgs{
+  flex:1;overflow-y:auto;padding:14px 12px;
+  display:flex;flex-direction:column;gap:12px;
+  -webkit-overflow-scrolling:touch;
+}
+
+.row{display:flex;gap:8px;align-items:flex-end}
+.row.u{flex-direction:row-reverse}
+.av{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;
+}
+.av-a{background:var(--brand);color:#fff}
+.av-u{background:var(--light);color:var(--brand)}
+
+.bub{
+  padding:10px 13px;border-radius:16px;
+  font-size:13.5px;line-height:1.65;max-width:83%;
+}
+.bub.a{
+  background:var(--pale);border:0.5px solid var(--light);
+  color:var(--dark);border-radius:16px 16px 16px 4px;
+}
+.bub.u{
+  background:var(--brand);color:#fff;
+  border-radius:16px 16px 4px 16px;
+}
+
+.agent-label{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--light);border-radius:20px;
+  padding:3px 9px;font-size:11px;color:var(--brand);
+  margin-bottom:5px;font-weight:600;
+}
+
+/* Result cards */
+.rcard{
+  background:#fff;border:0.5px solid var(--light);
+  border-radius:10px;padding:10px 11px;margin-top:8px;
+}
+.rcard-head{
+  font-size:11px;font-weight:700;color:var(--brand);
+  margin-bottom:7px;display:flex;align-items:center;gap:5px;
+}
+.rrow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:0.5px solid var(--light);font-size:12px;
+}
+.rrow:last-child{border:none}
+.badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.bg{background:#D5F5E3;color:var(--green)}
+.br{background:#FADBD8;color:var(--red)}
+.ba{background:#FDEBD0;color:var(--amber)}
+
+/* Thinking */
+.think-row{display:flex;gap:8px;align-items:flex-end}
+.think-bub{
+  background:var(--pale);border:0.5px solid var(--light);
+  border-radius:16px 16px 16px 4px;
+  padding:10px 14px;display:flex;align-items:center;gap:8px;
+  font-size:13px;color:var(--gray);
+}
+.dots span{
+  display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--mid);animation:dot 1.2s infinite;margin:0 1.5px;
+}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* API bar */
+#api-bar{
+  padding:8px 12px;background:var(--pale);
+  border-top:0.5px solid var(--light);flex-shrink:0;
+  display:flex;gap:6px;align-items:center;
+}
+#api-bar label{font-size:11px;color:var(--gray);white-space:nowrap}
+#api-inp{
+  flex:1;border:0.5px solid var(--light);border-radius:8px;
+  padding:7px 10px;font-size:12px;font-family:monospace;
+  color:var(--dark);background:#fff;min-width:0;
+}
+#api-save{
+  background:var(--brand);color:#fff;border:none;border-radius:8px;
+  padding:7px 12px;font-size:12px;cursor:pointer;white-space:nowrap;
+  font-family:inherit;
+}
+#api-status{font-size:10px;color:var(--green);white-space:nowrap}
+
+/* Quick chips */
+#chips{
+  padding:8px 12px;background:#fff;
+  border-top:0.5px solid var(--light);flex-shrink:0;
+  display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;
+}
+#chips::-webkit-scrollbar{display:none}
+.chip{
+  flex-shrink:0;background:var(--pale);border:0.5px solid var(--light);
+  border-radius:20px;padding:6px 13px;font-size:12px;color:var(--brand);
+  cursor:pointer;white-space:nowrap;font-family:inherit;
+}
+.chip:active{background:var(--light)}
+
+/* Input */
+#input-row{
+  padding:10px 12px 14px;background:#fff;
+  border-top:1px solid var(--light);flex-shrink:0;
+  display:flex;gap:8px;align-items:flex-end;
+}
+#txt{
+  flex:1;border:0.5px solid var(--light);border-radius:12px;
+  padding:10px 14px;font-size:14px;font-family:inherit;
+  resize:none;direction:rtl;min-height:44px;max-height:90px;
+  color:var(--dark);background:var(--pale);line-height:1.4;
+}
+#txt:focus{outline:none;border-color:var(--mid)}
+#snd{
+  width:44px;height:44px;background:var(--brand);color:#fff;
+  border:none;border-radius:12px;cursor:pointer;font-size:18px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+}
+#snd:disabled{opacity:0.4}
+#snd:active{transform:scale(0.95)}
+
+/* Footer owner */
+#footer{
+  text-align:center;padding:5px;background:var(--pale);
+  font-size:10px;color:var(--gray);border-top:0.5px solid var(--light);
+  flex-shrink:0;
+}
+#footer strong{color:var(--brand)}
+</style>
+</head>
+<body>
+
+<!-- ═══════ PIN SCREEN ═══════ -->
+<div id="pin-screen">
+  <div class="pin-logo"><i class="ti ti-flask"></i></div>
+  <div class="pin-title">إيجنت ذكاء المختبر</div>
+  <div class="pin-sub">أدخل رمز PIN للدخول</div>
+  <div class="pin-owner">مختبر سلطان المالكي</div>
+
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2<span class="btn-letters">ABC</span></button>
+    <button class="pin-btn" onclick="pinPress('3')">3<span class="btn-letters">DEF</span></button>
+    <button class="pin-btn" onclick="pinPress('4')">4<span class="btn-letters">GHI</span></button>
+    <button class="pin-btn" onclick="pinPress('5')">5<span class="btn-letters">JKL</span></button>
+    <button class="pin-btn" onclick="pinPress('6')">6<span class="btn-letters">MNO</span></button>
+    <button class="pin-btn" onclick="pinPress('7')">7<span class="btn-letters">PQRS</span></button>
+    <button class="pin-btn" onclick="pinPress('8')">8<span class="btn-letters">TUV</span></button>
+    <button class="pin-btn" onclick="pinPress('9')">9<span class="btn-letters">WXYZ</span></button>
+    <div></div>
+    <button class="pin-btn zero" onclick="pinPress('0')">0</button>
+    <button class="pin-btn del" onclick="pinDel()" aria-label="حذف"><i class="ti ti-backspace"></i></button>
+  </div>
+
+  <div class="pin-error" id="pin-err"></div>
+</div>
+
+<!-- ═══════ MAIN APP ═══════ -->
+<div id="app" style="display:none">
+
+  <div id="topbar">
+    <div class="tb-left">
+      <div class="tb-avatar"><i class="ti ti-flask"></i></div>
+      <div class="tb-info">
+        <div class="tb-name">إيجنت ذكاء المختبر</div>
+        <div class="tb-role">المالك: سلطان المالكي</div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <div class="status-pill">
+        <div class="s-dot"></div>
+        <span class="s-txt" id="conn-lbl">تجريبي</span>
+      </div>
+      <button class="lock-btn" onclick="lockApp()" title="قفل التطبيق">
+        <i class="ti ti-lock"></i>
+      </button>
+    </div>
+  </div>
+
+  <div id="kpi-strip">
+    <div class="kcard"><div class="kv" style="color:var(--brand)">1,284</div><div class="kl">عينة</div></div>
+    <div class="kcard"><div class="kv" style="color:var(--green)">92.1%</div><div class="kl">مطابقة</div></div>
+    <div class="kcard"><div class="kv" style="color:var(--red)">531</div><div class="kl">غير مطابق</div></div>
+    <div class="kcard"><div class="kv" style="color:var(--amber)">87%</div><div class="kl">الخطة</div></div>
+    <div class="kcard"><div class="kv" style="color:var(--amber)">78%</div><div class="kl">ISO</div></div>
+  </div>
+
+  <div id="tabs">
+    <button class="tab active" onclick="setTab(this,'تحليل')"><i class="ti ti-chart-bar"></i>تحليل</button>
+    <button class="tab" onclick="setTab(this,'ISO')"><i class="ti ti-certificate"></i>ISO</button>
+    <button class="tab" onclick="setTab(this,'KPI')"><i class="ti ti-gauge"></i>KPI</button>
+    <button class="tab" onclick="setTab(this,'تقرير')"><i class="ti ti-file-analytics"></i>تقرير</button>
+    <button class="tab" onclick="setTab(this,'CAPA')"><i class="ti ti-clipboard-check"></i>CAPA</button>
+  </div>
+
+  <div id="msgs">
+    <div class="row">
+      <div class="av av-a"><i class="ti ti-robot"></i></div>
+      <div class="bub a">
+        <div class="agent-label"><i class="ti ti-robot"></i> إيجنت المختبر</div><br>
+        أهلاً <strong>سلطان المالكي</strong>! 👋<br><br>
+        أنا إيجنتك الذكي لمختبر جودة المياه.<br>
+        اسألني عن أي شيء — التحاليل، الامتثال، KPIs، أو اطلب تقريراً كاملاً.
+      </div>
+    </div>
+  </div>
+
+  <div id="chips">
+    <button class="chip" onclick="useChip(this)">العينات غير المطابقة</button>
+    <button class="chip" onclick="useChip(this)">أخطر موقع</button>
+    <button class="chip" onclick="useChip(this)">وضع ISO الآن</button>
+    <button class="chip" onclick="useChip(this)">تقرير مراجعة الإدارة</button>
+    <button class="chip" onclick="useChip(this)">تحليل CAPA للكلور</button>
+    <button class="chip" onclick="useChip(this)">مؤشرات الأداء KPI</button>
+  </div>
+
+  <div id="input-row">
+    <textarea id="txt" placeholder="اكتب سؤالك بالعربية..." rows="1"></textarea>
+    <button id="snd" onclick="send()" aria-label="إرسال"><i class="ti ti-send"></i></button>
+  </div>
+
+  <div id="api-bar">
+    <label>Claude API:</label>
+    <input type="password" id="api-inp" placeholder="sk-ant-...">
+    <button id="api-save" onclick="saveKey()">اتصال</button>
+    <span id="api-status"></span>
+  </div>
+
+  <div id="footer">منصة <strong>سلطان المالكي</strong> — مختبر جودة المياه &nbsp;|&nbsp; جميع الحقوق محفوظة © 2025</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════
+//  PIN LOGIC — change PIN here:
+const CORRECT_PIN = '1234';
+// ═══════════════════════════════
+let pinEntered = '';
+let apiKey = '';
+let mode = 'تحليل';
+let busy = false;
+let history = [];
+
+// ── PIN ──
+function pinPress(d) {
+  if (pinEntered.length >= 4) return;
+  pinEntered += d;
+  document.getElementById('d' + (pinEntered.length - 1)).classList.add('filled');
+  if (pinEntered.length === 4) setTimeout(checkPin, 150);
+}
+
+function pinDel() {
+  if (!pinEntered.length) return;
+  pinEntered = pinEntered.slice(0, -1);
+  document.getElementById('d' + pinEntered.length).classList.remove('filled');
+  document.getElementById('pin-err').textContent = '';
+}
+
+function checkPin() {
+  if (pinEntered === CORRECT_PIN) {
+    document.getElementById('pin-screen').classList.add('hide');
+    document.getElementById('app').style.display = 'flex';
+    setTimeout(() => document.getElementById('pin-screen').style.display = 'none', 450);
+  } else {
+    document.getElementById('pin-err').textContent = 'رمز PIN غير صحيح. حاول مجدداً.';
+    [0,1,2,3].forEach(i => document.getElementById('d' + i).classList.remove('filled'));
+    pinEntered = '';
+    // shake animation
+    const pad = document.querySelector('.pin-dots');
+    pad.style.animation = 'none';
+    pad.offsetHeight;
+    pad.style.animation = 'shake 0.4s ease';
+  }
+}
+
+function lockApp() {
+  pinEntered = '';
+  [0,1,2,3].forEach(i => document.getElementById('d' + i).classList.remove('filled'));
+  document.getElementById('pin-err').textContent = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('pin-screen').style.display = 'flex';
+  document.getElementById('pin-screen').classList.remove('hide');
+}
+
+// ── API ──
+function saveKey() {
+  const k = document.getElementById('api-inp').value.trim();
+  if (!k) return;
+  apiKey = k;
+  document.getElementById('conn-lbl').textContent = 'متصل';
+  document.getElementById('api-status').textContent = '✓ متصل';
+  document.getElementById('api-inp').value = '••••••••••••';
+}
+
+// ── TABS ──
+function setTab(el, m) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  mode = m;
+}
+
+function useChip(el) {
+  document.getElementById('txt').value = el.textContent.trim();
+  document.getElementById('txt').focus();
+}
+
+// ── DOM helpers ──
+const $msgs = () => document.getElementById('msgs');
+
+function addUser(text) {
+  const row = document.createElement('div');
+  row.className = 'row u';
+  row.innerHTML = `<div class="av av-u"><i class="ti ti-user"></i></div>
+    <div class="bub u">${text}</div>`;
+  $msgs().appendChild(row);
+  $msgs().scrollTop = 99999;
+}
+
+function addThinking() {
+  const r = document.createElement('div');
+  r.className = 'think-row'; r.id = 'thinking';
+  r.innerHTML = `<div class="av av-a"><i class="ti ti-robot"></i></div>
+    <div class="think-bub"><span>الإيجنت يحلل</span>
+    <div class="dots"><span></span><span></span><span></span></div></div>`;
+  $msgs().appendChild(r);
+  $msgs().scrollTop = 99999;
+}
+
+function removeThinking() {
+  const e = document.getElementById('thinking');
+  if (e) e.remove();
+}
+
+function card(title, icon, rows) {
+  let h = `<div class="rcard"><div class="rcard-head"><i class="ti ti-${icon}"></i>${title}</div>`;
+  rows.forEach(r => {
+    h += `<div class="rrow"><span>${r.n}</span><span class="badge ${r.s}">${r.v}</span></div>`;
+  });
+  return h + '</div>';
+}
+
+function addAgent(html) {
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.innerHTML = `<div class="av av-a"><i class="ti ti-robot"></i></div>
+    <div class="bub a">
+      <div class="agent-label"><i class="ti ti-robot"></i> إيجنت سلطان المالكي</div><br>
+      ${html}
+    </div>`;
+  $msgs().appendChild(row);
+  $msgs().scrollTop = 99999;
+}
+
+// ── DEMO RESPONSES ──
+const LOC = [
+  {n:'خزان المدينة 3',  v:'142 حالة', s:'br'},
+  {n:'شبكة التوزيع B',  v:'98 حالة',  s:'ba'},
+  {n:'محطة الضخ A',     v:'71 حالة',  s:'ba'},
+  {n:'محطة المعالجة',   v:'55 حالة',  s:'bg'},
+  {n:'خزان المدينة 1',  v:'42 حالة',  s:'bg'},
+];
+const KPIS = [
+  {n:'حالات الرفض',           v:'3',     s:'bg'},
+  {n:'اكتمال السجلات',        v:'96%',   s:'bg'},
+  {n:'امتثال كيميائي',        v:'93.5%', s:'bg'},
+  {n:'امتثال ميكروبيولوجي',   v:'89.3%', s:'br'},
+  {n:'إغلاق CAPA',            v:'72%',   s:'ba'},
+  {n:'امتثال الخطة',          v:'87%',   s:'br'},
+];
+const ISO = [
+  {n:'التدقيق الداخلي',       v:'90%', s:'bg'},
+  {n:'معايرة المعدات',        v:'85%', s:'bg'},
+  {n:'الإجراءات التصحيحية',   v:'65%', s:'ba'},
+  {n:'اختبارات الكفاءة',      v:'50%', s:'ba'},
+  {n:'تقييم الكفاءة',         v:'40%', s:'br'},
+  {n:'مراجعة الإدارة',        v:'35%', s:'br'},
+];
+
+function demoReply(q) {
+  if (/مطابق|عينة|عدد/.test(q))
+    return `<strong>النتائج غير المطابقة — يونيو 2025</strong><br>
+إجمالي: <strong>531</strong> من 6,732 تحليل (7.9%)<br><br>
+• ميكروبيولوجي: 234 حالة ⚠ دون الهدف<br>
+• كيميائي: 197 حالة ✓<br>
+• فيزيائي: 100 حالة ✓` + card('المواقع الأكثر تأثراً','map-pin', LOC);
+
+  if (/موقع|خطر/.test(q))
+    return `<strong>أخطر موقع: خزان المدينة 3</strong> 🔴<br><br>
+142 حالة غير مطابقة (26.7% من الإجمالي)<br>
+المعاملات: Total Coliforms، كلور متبقي<br><br>
+<strong>التوصية:</strong> مراجعة نظام التعقيم وفتح CAPA عاجل`
+    + card('ترتيب جميع المواقع','list-details', LOC);
+
+  if (/iso|17025/.test(q))
+    return `<strong>امتثال ISO 17025:2017</strong><br>
+الدرجة الإجمالية: <strong>78%</strong> 🟡<br><br>
+🔴 مراجعة الإدارة: 35% — لم تُعقد بعد<br>
+🔴 تقييم الكفاءة: 40% — ناقص<br>
+🟡 CAPA: 65% — 4 مفتوحة<br>
+✓ التدقيق الداخلي: 90%` + card('تفصيل مجالات ISO','certificate', ISO);
+
+  if (/kpi|مؤشر/.test(q))
+    return `<strong>مؤشرات الأداء KPI</strong><br>
+3 خضراء ✓ | 1 تحذير ⚠ | 2 حرجة ✗<br><br>
+الأولويات:<br>
+• الامتثال الميكروبيولوجي: 89.3% (هدف 95%)<br>
+• إغلاق CAPA: 72% (هدف 85%)<br>
+• امتثال الخطة: 87% (هدف 95%)` + card('جميع مؤشرات KPI','gauge', KPIS);
+
+  if (/تقرير|مراجعة إدارة/.test(q))
+    return `<strong>تقرير مراجعة الإدارة — Q2 2025</strong><br>
+<em>وفق ISO 17025:2017 البند 8.9</em><br>
+<em>المُعد بواسطة: سلطان المالكي</em><br><br>
+<strong>الأداء العام:</strong> 92.1% امتثال إجمالي<br>
+<strong>أبرز النتائج:</strong><br>
+• 531 نتيجة غير مطابقة<br>
+• امتثال الخطة 87% (دون الهدف)<br>
+• درجة ISO 78%<br><br>
+<strong>القرارات المطلوبة:</strong><br>
+• عقد مراجعة الإدارة الرسمية<br>
+• إغلاق 4 CAPAs عالقة قبل نهاية الشهر<br>
+• الاشتراك في برنامج PT الربع الثالث`;
+
+  if (/capa|سبب|كلور/.test(q))
+    return `<strong>تحليل السبب الجذري — مخالفات الكلور</strong><br>
+<em>منهجية 5-Why | سلطان المالكي</em><br><br>
+❓ انخفض الكلور ← جرعة التكلير غير كافية<br>
+❓ جرعة غير كافية ← جهاز لم يُعايَر 90 يوماً<br>
+❓ لم تتم المعايرة ← لا يوجد جدول موثق<br>
+❓ لا جدول ← ثغرة في برنامج الصيانة<br><br>
+<strong>خطة CAPA:</strong><br>
+⚡ فوري: معايرة الأجهزة (48 ساعة)<br>
+📅 قصير: جدول معايرة شهري (أسبوع)<br>
+🔧 طويل: تحديث نظام المعدات (شهر)`;
+
+  return `شكراً على سؤالك. المختبر لديه 1,284 عينة و531 نتيجة غير مطابقة في السجلات الحالية.<br><br>
+جرب الأسئلة السريعة أعلاه أو أدخل مفتاح Claude API للحصول على إجابات مخصصة كاملة.`;
+}
+
+// ── SEND ──
+async function send() {
+  if (busy) return;
+  const inp = document.getElementById('txt');
+  const q = inp.value.trim();
+  if (!q) return;
+  inp.value = ''; inp.style.height = '44px';
+  busy = true;
+  document.getElementById('snd').disabled = true;
+  addUser(q);
+  addThinking();
+
+  try {
+    let reply;
+    if (apiKey) {
+      const SYSTEM = `أنت إيجنت ذكاء متخصص لمختبر جودة المياه. المختبر مملوك لـ سلطان المالكي.
+أجب دائماً بالعربية فقط. استشهد بالأرقام الدقيقة. قدم توصيات عملية.
+الوضع الحالي: ${mode}
+بيانات المختبر:
+- إجمالي العينات: 1284 | غير مطابق: 531 (7.9%)
+- ميكروبيولوجي: 2184 تحليل، امتثال 89.3%
+- كيميائي: 3041 تحليل، امتثال 93.5%
+- فيزيائي: 1507 تحليل، امتثال 93.4%
+- امتثال الخطة السنوية: 87%
+- درجة ISO 17025: 78%
+- أخطر موقع: خزان المدينة 3 (142 حالة)`;
+
+      history.push({ role: 'user', content: q });
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 900,
+          system: SYSTEM,
+          messages: history
+        })
+      });
+      const d = await r.json();
+      const txt = d.content[0].text;
+      history.push({ role: 'assistant', content: txt });
+      reply = txt.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    } else {
+      await new Promise(r => setTimeout(r, 900));
+      reply = demoReply(q);
+    }
+    removeThinking();
+    addAgent(reply);
+  } catch (e) {
+    removeThinking();
+    addAgent(`خطأ في الاتصال: ${e.message}`);
+  }
+
+  busy = false;
+  document.getElementById('snd').disabled = false;
+}
+
+// ── INPUT AUTO-RESIZE ──
+document.getElementById('txt').addEventListener('input', function () {
+  this.style.height = '44px';
+  this.style.height = Math.min(this.scrollHeight, 90) + 'px';
+});
+document.getElementById('txt').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+</script>
+
+<style>
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-5px)}
+  80%{transform:translateX(5px)}
+}
+</style>
+</body>
+</html>
